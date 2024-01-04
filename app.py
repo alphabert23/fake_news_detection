@@ -23,7 +23,7 @@ title_vectorizer = joblib.load("title_vectorizer.pkl")
 text_vectorizer = joblib.load("text_vectorizer.pkl")
 
 # Streamlit app
-st.title("Fake News Detection App")
+st.title("TruthGuard Fake News Detector")
 
 # Text input
 article_title = st.text_input("Enter the title of the news article:")
@@ -50,15 +50,15 @@ if st.button("Predict", use_container_width=True):
         vectorized_text = text_vectorizer.transform([processed_text]).toarray()
 
         # Make a prediction
-        prediction = model.predict([vectorized_title, vectorized_text])
-        # For Keras models, the prediction will usually be in a [0,1] range, so you might need to round it
-        prediction = 0 if prediction < 0.5 else 1
+        prediction_percent = model.predict([vectorized_title, vectorized_text])
+        
+        prediction = 0 if prediction_percent < 0.5 else 1
     else:
         # Preprocess the input
         processed_input = preprocessing(article_title+' '+user_input)
         # Transform the input using the loaded vectorizer
         vectorized_input = vectorizer.transform([processed_input])
-        # Scale the input (if you used scaling during logistic regression training)
+        
         scaler = joblib.load("fakenews_model_scaled.pkl")
         scaled_input = scaler.transform(vectorized_input)
         # Make a prediction
@@ -69,3 +69,6 @@ if st.button("Predict", use_container_width=True):
         st.success("The news is predicted to be REAL.")
     else:
         st.error("The news is predicted to be FAKE.")
+    if chosen_model == 'CNN':
+        prediction_percent = round((prediction_percent[0][0])*100, 2)
+        st.write(f"FAKE Probability: {prediction_percent} %") 
